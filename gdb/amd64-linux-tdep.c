@@ -37,6 +37,7 @@
 
 #include "amd64-tdep.h"
 #include "solib-svr4.h"
+#include "solib-wine.h"
 #include "xml-syscall.h"
 #include "glibc-tdep.h"
 #include "arch/amd64.h"
@@ -280,7 +281,7 @@ static int amd64_linux_sc_reg_offset[] =
 static int
 amd64_linux_register_reggroup_p (struct gdbarch *gdbarch, int regnum,
 				 struct reggroup *group)
-{ 
+{
   if (regnum == AMD64_LINUX_ORIG_RAX_REGNUM
       || regnum == AMD64_FSBASE_REGNUM
       || regnum == AMD64_GSBASE_REGNUM)
@@ -357,8 +358,8 @@ amd64_all_but_ip_registers_record (struct regcache *regcache)
   return 0;
 }
 
-/* amd64_canonicalize_syscall maps from the native amd64 Linux set 
-   of syscall ids into a canonical set of syscall ids used by 
+/* amd64_canonicalize_syscall maps from the native amd64 Linux set
+   of syscall ids into a canonical set of syscall ids used by
    process record.  */
 
 static enum gdb_syscall
@@ -1497,7 +1498,7 @@ amd64_linux_syscall_record_common (struct regcache *regcache,
   if (syscall_gdb == gdb_sys_no_syscall)
     {
       printf_unfiltered (_("Process record and replay target doesn't "
-			   "support syscall number %s\n"), 
+			   "support syscall number %s\n"),
 			 pulongest (syscall_native));
       return -1;
     }
@@ -1701,7 +1702,7 @@ amd64_dtrace_probe_is_enabled (struct gdbarch *gdbarch, CORE_ADDR addr)
 
      Note that ADDR is offset 3 bytes from the beginning of these
      sequences.  */
-  
+
   read_code (addr - 3, buf, 5);
   return (memcmp (buf, amd64_dtrace_disabled_probe_sequence_1, 5) != 0
 	  && memcmp (buf, amd64_dtrace_disabled_probe_sequence_2, 5) != 0);
@@ -2259,6 +2260,21 @@ amd64_x32_linux_init_abi (struct gdbarch_info info, struct gdbarch *gdbarch)
     (gdbarch, linux_ilp32_fetch_link_map_offsets);
 }
 
+static bool amd64_linux_get_tib_addr(CORE_ADDR *tib_addr)
+{
+  if (target_has_registers()) {
+    regcache_cooked_read_unsigned(get_current_regcache(), AMD64_GSBASE_REGNUM, tib_addr);
+    return true;
+  }
+  return false;
+}
+
+static void amd64_linux_wine_init_abi(struct gdbarch_info info, struct gdbarch *gdbarch)
+{
+  amd64_linux_init_abi(info, gdbarch);
+  set_solib_wine(gdbarch, amd64_linux_get_tib_addr);
+}
+
 void _initialize_amd64_linux_tdep ();
 void
 _initialize_amd64_linux_tdep ()
@@ -2267,4 +2283,6 @@ _initialize_amd64_linux_tdep ()
 			  GDB_OSABI_LINUX, amd64_linux_init_abi);
   gdbarch_register_osabi (bfd_arch_i386, bfd_mach_x64_32,
 			  GDB_OSABI_LINUX, amd64_x32_linux_init_abi);
+  gdbarch_register_osabi (bfd_arch_i386, bfd_mach_x86_64,
+        GDB_OSABI_WINE_LINUX, amd64_linux_wine_init_abi);
 }

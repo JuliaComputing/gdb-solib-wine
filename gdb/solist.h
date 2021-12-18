@@ -31,6 +31,8 @@ struct lm_info_base
 {
 };
 
+struct target_so_ops;
+
 struct so_list
 {
   /* The following fields of the structure come directly from the
@@ -81,6 +83,8 @@ struct so_list
      that supports outputting multiple segments once the related code
      supports them.  */
   CORE_ADDR addr_low, addr_high;
+
+  struct target_so_ops *so_ops;
 };
 
 struct target_so_ops

@@ -82,6 +82,7 @@ static const struct osabi_names gdb_osabi_names[] =
   { "Newlib", NULL },
   { "SDE", NULL },
   { "PikeOS", NULL },
+  { "WineLinux", NULL },
 
   { "<invalid>", NULL }
 };

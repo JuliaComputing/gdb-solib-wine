@@ -1,6 +1,6 @@
 /* OS ABI variant handling for GDB.
    Copyright (C) 2001-2021 Free Software Foundation, Inc.
-   
+
    This file is part of GDB.
 
    This program is free software; you can redistribute it and/or modify
@@ -46,6 +46,7 @@ enum gdb_osabi
   GDB_OSABI_NEWLIB,
   GDB_OSABI_SDE,
   GDB_OSABI_PIKEOS,
+  GDB_OSABI_WINE_LINUX,
 
   GDB_OSABI_INVALID		/* keep this last */
 };

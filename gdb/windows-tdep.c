@@ -476,7 +476,7 @@ display_one_tib (ptid_t ptid)
       tib_size = FULL_TIB_SIZE;
       max = tib_size / size;
     }
-  
+
   tib = (gdb_byte *) alloca (tib_size);
 
   if (target_get_tib_address (ptid, &thread_local_base) == 0)
@@ -491,7 +491,7 @@ display_one_tib (ptid_t ptid)
     {
       printf_filtered (_("Unable to read thread information "
 			 "block for %s at address %s\n"),
-		       target_pid_to_str (ptid).c_str (), 
+		       target_pid_to_str (ptid).c_str (),
 		       paddress (target_gdbarch (), thread_local_base));
       return -1;
     }
@@ -502,7 +502,7 @@ display_one_tib (ptid_t ptid)
 
   index = (gdb_byte *) tib;
 
-  /* All fields have the size of a pointer, this allows to iterate 
+  /* All fields have the size of a pointer, this allows to iterate
      using the same for loop for both layouts.  */
   for (i = 0; i < max; i++)
     {
@@ -513,8 +513,8 @@ display_one_tib (ptid_t ptid)
 	printf_filtered (_("TIB[0x%s] is 0x%s\n"), phex (i * size, 2),
 			 phex (val, size));
       index += size;
-    } 
-  return 1;  
+    }
+  return 1;
 }
 
 /* Display thread information block of the current thread.  */
@@ -875,6 +875,8 @@ windows_get_siginfo_type (struct gdbarch *gdbarch)
 
 /* Implement the "solib_create_inferior_hook" target_so_ops method.  */
 
+#include "solib-winabi.c"
+
 static void
 windows_solib_create_inferior_hook (int from_tty)
 {
@@ -890,24 +892,20 @@ windows_solib_create_inferior_hook (int from_tty)
   if (gdbarch_ptr_bit (gdbarch) == 32)
     {
       ptr_bytes = 4;
-      peb_offset = 48;
       base_offset = 8;
     }
   else
     {
       ptr_bytes = 8;
-      peb_offset = 96;
       base_offset = 16;
     }
   CORE_ADDR tlb;
   gdb_byte buf[8];
-  if (target_has_execution ()
-      && target_get_tib_address (inferior_ptid, &tlb)
-      && !target_read_memory (tlb + peb_offset, buf, ptr_bytes))
-    {
-      CORE_ADDR peb = extract_unsigned_integer (buf, ptr_bytes, byte_order);
-      if (!target_read_memory (peb + base_offset, buf, ptr_bytes))
-	exec_base = extract_unsigned_integer (buf, ptr_bytes, byte_order);
+  if (target_has_execution () && target_get_tib_address (inferior_ptid, &tlb) &&
+        winabi_target_get_peb(tlb,
+        gdbarch_ptr_bit (gdbarch) == 64, byte_order, &peb))
+    if (!target_read_memory (peb + base_offset, buf, ptr_bytes))
+      exec_base = extract_unsigned_integer (buf, ptr_bytes, byte_order);
     }
 
   /* Rebase executable if the base address changed because of ASLR.  */

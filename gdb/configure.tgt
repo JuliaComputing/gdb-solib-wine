@@ -337,8 +337,8 @@ iq2000-*-*)
 	gdb_target_obs="iq2000-tdep.o"
 	;;
 
-lm32-*-*)		
-	gdb_target_obs="lm32-tdep.o" 
+lm32-*-*)
+	gdb_target_obs="lm32-tdep.o"
 	;;
 
 m32c-*-*)
@@ -640,7 +640,7 @@ tic6x-*-*linux)
 	;;
 
 tic6x-*-*)
-	# Target: TI C6X 
+	# Target: TI C6X
 	gdb_target_obs="tic6x-tdep.o"
 	;;
 
@@ -697,7 +697,7 @@ x86_64-*-linux*)
 	# Target: GNU/Linux x86-64
 	gdb_target_obs="amd64-linux-tdep.o ${i386_tobjs}  \
 			i386-linux-tdep.o glibc-tdep.o \
-			solib-svr4.o symfile-mem.o linux-tdep.o linux-record.o"
+			solib-svr4.o solib-wine.o symfile-mem.o linux-tdep.o linux-record.o"
 	;;
 x86_64-*-freebsd* | x86_64-*-kfreebsd*-gnu)
 	# Target: FreeBSD/amd64

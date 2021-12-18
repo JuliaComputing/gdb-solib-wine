@@ -66,7 +66,7 @@ solib_init (struct obstack *obstack)
   return ops;
 }
 
-static const struct target_so_ops *
+const struct target_so_ops *
 solib_ops (struct gdbarch *gdbarch)
 {
   const struct target_so_ops **ops
@@ -325,6 +325,13 @@ solib_find_1 (const char *in_pathname, int *fd, bool is_solib)
   if (is_solib && found_file < 0 && !solib_search_path.empty ())
     found_file = openp (solib_search_path.c_str (),
 			OPF_TRY_CWD_FIRST | OPF_RETURN_REALPATH,
+			in_pathname, O_RDONLY | O_BINARY, &temp_pathname);
+
+  /* If not found, and we're looking for a solib, search the
+     solib_search_path without forcing cwd.  */
+  if (is_solib && found_file < 0 && !solib_search_path.empty ())
+    found_file = openp (solib_search_path.c_str (),
+			OPF_RETURN_REALPATH,
 			in_pathname, O_RDONLY | O_BINARY, &temp_pathname);
 
   /* If not found, and we're looking for a solib, next search the
@@ -791,7 +798,7 @@ update_solib_list (int from_tty)
 	  else
 	    {
 	      if (! filename_cmp (gdb->so_original_name, i->so_original_name))
-		break;	      
+		break;
 	    }
 
 	  i_link = &i->next;
@@ -1345,13 +1352,13 @@ reload_shared_libraries (const char *ignored, int from_tty,
 
   ops = solib_ops (target_gdbarch ());
 
-  /* Creating inferior hooks here has two purposes.  First, if we reload 
+  /* Creating inferior hooks here has two purposes.  First, if we reload
      shared libraries then the address of solib breakpoint we've computed
      previously might be no longer valid.  For example, if we forgot to set
      solib-absolute-prefix and are setting it right now, then the previous
      breakpoint address is plain wrong.  Second, installing solib hooks
      also implicitly figures were ld.so is and loads symbols for it.
-     Absent this call, if we've just connected to a target and set 
+     Absent this call, if we've just connected to a target and set
      solib-absolute-prefix or solib-search-path, we'll lose all information
      about ld.so.  */
   if (target_has_execution ())

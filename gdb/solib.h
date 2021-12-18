@@ -1,5 +1,5 @@
 /* Shared library declarations for GDB, the GNU Debugger.
-   
+
    Copyright (C) 1992-2021 Free Software Foundation, Inc.
 
    This file is part of GDB.
@@ -69,6 +69,10 @@ extern bool in_solib_dynsym_resolve_code (CORE_ADDR);
 /* Discard symbols that were auto-loaded from shared libraries.  */
 
 extern void no_shared_libraries (const char *ignored, int from_tty);
+
+/* Get the solib operations for GDBARCH */
+
+extern const struct target_so_ops *solib_ops (struct gdbarch *gdbarch);
 
 /* Set the solib operations for GDBARCH to NEW_OPS.  */
 

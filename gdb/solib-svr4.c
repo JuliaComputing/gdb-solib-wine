@@ -2996,7 +2996,6 @@ svr4_relocate_section_addresses (struct so_list *so,
   sec->addr = svr4_truncate_ptr (sec->addr + lm_addr_check (so, abfd));
   sec->endaddr = svr4_truncate_ptr (sec->endaddr + lm_addr_check (so, abfd));
 }
-
 
 /* Architecture-specific operations.  */
 
