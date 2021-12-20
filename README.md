@@ -1,4 +1,4 @@
-# README for for github.com/JuliaComputing/gdb-solib-wine
+# README for gdb-solib-wine
 
 This is a development fork of GDB to enhance GDB with an understanding
 of WINE's dynamic linker. It is primarily intended for situations where
