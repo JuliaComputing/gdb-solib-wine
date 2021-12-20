@@ -846,6 +846,10 @@ struct dwarf2_frame_cache
   /* Set if the return address column was marked as undefined.  */
   int undefined_retaddr;
 
+  /* Set if we heuristically think that this function is a stack
+     switcher */
+  int stack_switch_heuristic;
+
   /* Saved registers, indexed by GDB register number, not by DWARF
      register number.  */
   struct dwarf2_frame_state_reg *reg;
@@ -973,6 +977,10 @@ dwarf2_frame_cache (struct frame_info *this_frame, void **this_cache)
 	    execute_stack_op (fs.regs.cfa_exp, fs.regs.cfa_exp_len,
 			      cache->addr_size, this_frame, 0, 0,
 			      cache->per_objfile);
+    /* If the the CFI went through the trouble of specifying an
+       expression for the CFA, trust that the CFI here is correct
+       and a stack switch is potentially intended. */
+    cache->stack_switch_heuristic = 1;
 	  break;
 
 	default:
@@ -1123,6 +1131,8 @@ dwarf2_frame_this_id (struct frame_info *this_frame, void **this_cache,
     (*this_id) = frame_id_build_unavailable_stack (get_frame_func (this_frame));
   else if (cache->undefined_retaddr)
     return;
+  else if (cache->stack_switch_heuristic)
+    (*this_id) = frame_id_build_stack_switch (cache->cfa, get_frame_func (this_frame));
   else
     (*this_id) = frame_id_build (cache->cfa, get_frame_func (this_frame));
 }
@@ -1360,7 +1370,8 @@ dwarf2_frame_cfa (struct frame_info *this_frame)
 		_("can't compute CFA for this frame: "
 		  "required registers or memory are unavailable"));
 
-  if (get_frame_id (this_frame).stack_status != FID_STACK_VALID)
+  if (get_frame_id (this_frame).stack_status != FID_STACK_VALID &&
+      get_frame_id (this_frame).stack_status != FID_ALLOW_STACK_SWITCH)
     throw_error (NOT_AVAILABLE_ERROR,
 		_("can't compute CFA for this frame: "
 		  "frame base not available"));

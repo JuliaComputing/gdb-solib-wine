@@ -87,7 +87,7 @@ frscm_hash_frame_smob (const void *p)
   const struct frame_id *fid = &f_smob->frame_id;
   hashval_t hash = htab_hash_pointer (f_smob->inferior);
 
-  if (fid->stack_status == FID_STACK_VALID)
+  if (fid->stack_status == FID_STACK_VALID || fid->stack_status == FID_ALLOW_STACK_SWITCH)
     hash = iterative_hash (&fid->stack_addr, sizeof (fid->stack_addr), hash);
   if (fid->code_addr_p)
     hash = iterative_hash (&fid->code_addr, sizeof (fid->code_addr), hash);

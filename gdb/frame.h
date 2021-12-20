@@ -101,6 +101,14 @@ enum frame_id_stack_status
      outer frame are also of this type.  */
   FID_STACK_OUTER = 3,
 
+  /* Stack switch frame. This is heuristically inferred from the CFI of the
+     frame in question and disables stack layout heuristics that would otherwise
+     terminate unwinding. Note that the tagged frame's CFA is expected to be
+     inner to its caller (i.e. the stack switching happens during the tagged
+     function and its callee may have a new CFA). Otherwise equivalent to
+     FID_STACK_VALID. */
+  FID_ALLOW_STACK_SWITCH = 4,
+
   /* Stack address is unavailable.  I.e., there's a valid stack, but
      we don't know where it is (because memory or registers we'd
      compute it from were not collected).  */
@@ -129,7 +137,7 @@ struct frame_id
      wrong.
 
      This field is valid only if frame_id.stack_status is
-     FID_STACK_VALID.  It will be 0 for other
+     FID_STACK_VALID or FID_ALLOW_STACK_SWITCH.  It will be 0 for other
      FID_STACK_... statuses.  */
   CORE_ADDR stack_addr;
 
@@ -161,7 +169,7 @@ struct frame_id
   CORE_ADDR special_addr;
 
   /* Flags to indicate the above fields have valid contents.  */
-  ENUM_BITFIELD(frame_id_stack_status) stack_status : 3;
+  ENUM_BITFIELD(frame_id_stack_status) stack_status : 4;
   unsigned int code_addr_p : 1;
   unsigned int special_addr_p : 1;
 
@@ -232,6 +240,13 @@ extern bool frame_debug;
    frame's constant code address (typically the entry point).
    The special identifier address is set to indicate a wild card.  */
 extern struct frame_id frame_id_build (CORE_ADDR stack_addr,
+				       CORE_ADDR code_addr);
+
+/* Construct a stack-switcher frame ID.  The first parameter is the frame's constant
+   stack address (typically the outer-bound), and the second the
+   frame's constant code address (typically the entry point).
+   The special identifier address is set to indicate a wild card.  */
+extern struct frame_id frame_id_build_stack_switch (CORE_ADDR stack_addr,
 				       CORE_ADDR code_addr);
 
 /* Construct a special frame ID.  The first parameter is the frame's constant

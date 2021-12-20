@@ -226,11 +226,13 @@ frame_addr_hash (const void *ap)
   const struct frame_id f_id = frame->this_id.value;
   hashval_t hash = 0;
 
-  gdb_assert (f_id.stack_status != FID_STACK_INVALID
+  gdb_assert ((f_id.stack_status != FID_STACK_INVALID &&
+               f_id.stack_status != FID_ALLOW_STACK_SWITCH)
 	      || f_id.code_addr_p
 	      || f_id.special_addr_p);
 
-  if (f_id.stack_status == FID_STACK_VALID)
+  if (f_id.stack_status == FID_STACK_VALID ||
+      f_id.stack_status == FID_ALLOW_STACK_SWITCH)
     hash = iterative_hash (&f_id.stack_addr,
 			   sizeof (f_id.stack_addr), hash);
   if (f_id.code_addr_p)
@@ -722,6 +724,18 @@ frame_id_build (CORE_ADDR stack_addr, CORE_ADDR code_addr)
 }
 
 struct frame_id
+frame_id_build_stack_switch (CORE_ADDR stack_addr, CORE_ADDR code_addr)
+{
+  struct frame_id id = null_frame_id;
+
+  id.stack_addr = stack_addr;
+  id.stack_status = FID_ALLOW_STACK_SWITCH;
+  id.code_addr = code_addr;
+  id.code_addr_p = true;
+  return id;
+}
+
+struct frame_id
 frame_id_build_wild (CORE_ADDR stack_addr)
 {
   struct frame_id id = null_frame_id;
@@ -823,7 +837,13 @@ frame_id_inner (struct gdbarch *gdbarch, struct frame_id l, struct frame_id r)
 {
   bool inner;
 
-  if (l.stack_status != FID_STACK_VALID || r.stack_status != FID_STACK_VALID)
+  /**
+   * This heuristic is disabled for FID_ALLOW_STACK_SWITCH -> FID_STACK_VALID,
+   * but we do check the opposite order. */
+  if (l.stack_status == FID_ALLOW_STACK_SWITCH && r.stack_status == FID_STACK_VALID)
+    inner = false;
+  else if ((l.stack_status != FID_STACK_VALID && l.stack_status != FID_ALLOW_STACK_SWITCH)
+        || (r.stack_status != FID_STACK_VALID && r.stack_status != FID_ALLOW_STACK_SWITCH))
     /* Like NaN, any operation involving an invalid ID always fails.
        Likewise if either ID has an unavailable stack address.  */
     inner = false;
