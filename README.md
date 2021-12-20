@@ -1,4 +1,4 @@
-		   README for for github.com/JuliaComputing/gdb-solib-wine
+# README for for github.com/JuliaComputing/gdb-solib-wine
 
 This is a development fork of GDB to enhance GDB with an understanding
 of WINE's dynamic linker. It is primarily intended for situations where
@@ -147,3 +147,4 @@ Reading symbols from /home/keno/.wine/drive_c/windows/system32/imm32.dll...
 - [ ] Breakpoint on library reload?
 - [ ] Some sort of better path translation?
 - [ ] Wine specific debug commands?
+- [ ] Teach GDB to do case insensitive lookups for windows libraries
