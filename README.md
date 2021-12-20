@@ -10,7 +10,7 @@ In the current version of this patchset, wine solib functionality
 is guarded by the `WineLinux` osabi mode (whether that is the
 correct design is something to be figured out).
 
-Activatie is by using:
+Activate it by using:
 ```
 file wine64
 set osabi WineLinux
