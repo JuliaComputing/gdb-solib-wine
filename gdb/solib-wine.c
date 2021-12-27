@@ -31,6 +31,8 @@
 #include "regcache.h"
 #include "gdbthread.h"
 #include "observable.h"
+#include "coff/internal.h"
+#include "libcoff.h"
 
 #include "solist.h"
 #include "solib.h"
@@ -93,8 +95,11 @@ wine_relocate_section_addresses (struct so_list *so,
 
   if (so->so_ops == &wine_so_ops)
   {
-    sec->addr = sec->addr + (uintptr_t)so->lm_info;
-    sec->endaddr = sec->endaddr + (uintptr_t)so->lm_info;
+    bfd *abfd = sec->the_bfd_section->owner;
+    CORE_ADDR ImageBase = pe_data (abfd)->pe_opthdr.ImageBase;
+
+    sec->addr = sec->addr + (uintptr_t)so->lm_info - ImageBase;
+    sec->endaddr = sec->endaddr + (uintptr_t)so->lm_info - ImageBase;
   } else {
     return ops->host_so_ops->relocate_section_addresses (so, sec);
   }
@@ -107,7 +112,11 @@ wine_free_so(struct so_list *so)
   struct solib_wine_ops *ops
     = (struct solib_wine_ops *) gdbarch_data (gdbarch, solib_wine_data);
 
-  return ops->host_so_ops->free_so (so);
+  if (so->so_ops == &wine_so_ops)
+  {
+  } else {
+    return ops->host_so_ops->free_so (so);
+  }
 }
 
 static void
@@ -117,7 +126,11 @@ wine_clear_so(struct so_list *so)
   struct solib_wine_ops *ops
     = (struct solib_wine_ops *) gdbarch_data (gdbarch, solib_wine_data);
 
-  return ops->host_so_ops->clear_so (so);
+  if (so->so_ops == &wine_so_ops)
+  {
+  } else {
+    return ops->host_so_ops->clear_so (so);
+  }
 }
 
 static void
@@ -207,6 +220,8 @@ static void wine_read_so_list(CORE_ADDR list_head, bool iswin64, enum bfd_endian
           paddress (target_gdbarch (), ldr.FullDllName.Buffer));
         break;
       }
+
+      newobj->lm_info = (lm_info_base*)ldr.DllBase;
 
       auto_obstack converted_name;
       convert_between_encodings ("UTF-16", host_charset(),
@@ -302,7 +317,12 @@ wine_same (struct so_list *gdb, struct so_list *inferior)
   struct solib_wine_ops *ops
     = (struct solib_wine_ops *) gdbarch_data (gdbarch, solib_wine_data);
 
-  return ops->host_so_ops->same (gdb, inferior);
+  if (gdb->so_ops == &wine_so_ops || inferior->so_ops == &wine_so_ops)
+  {
+    return 1;
+  } else {
+    return ops->host_so_ops->same (gdb, inferior);
+  }
 }
 
 static int
