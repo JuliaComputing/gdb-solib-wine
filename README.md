@@ -148,3 +148,5 @@ Reading symbols from /home/keno/.wine/drive_c/windows/system32/imm32.dll...
 - [ ] Some sort of better path translation?
 - [ ] Wine specific debug commands?
 - [ ] Teach GDB to do case insensitive lookups for windows libraries
+- [ ] Look at Rtl tables for dynamic unwind info
+- [ ] Teach GDB about WCHAR?
