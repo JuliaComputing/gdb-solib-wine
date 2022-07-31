@@ -6,14 +6,29 @@ winedbg cannot be used (e.g. in rr traces).
 
 # Usage
 
+## Setup
+
+In order for GDB to be able to find your shared libraries, you may
+need to work around some case sensitivity issues. The easiest way
+I've found to do this is to add some symlinks:
+
+```
+cd ~/.wine/dosdevices
+ln -s z: Z:
+ln -s c: C:
+```
+
+## In gdb
+
 In the current version of this patchset, wine solib functionality
 is guarded by the `WineLinux` osabi mode (whether that is the
 correct design is something to be figured out).
 
 Activate it by using:
 ```
-file wine64
+set solib-search-path ~/.wine/dosdevices/
 set osabi WineLinux
+file wine64
 sharedlibrary
 ```
 
